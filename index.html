@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FunEnglish Kids - Aprenda Inglês Brincando!</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Fredoka e Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'kids-yellow': '#FFDE59',
+                        'kids-orange': '#FF914D',
+                        'kids-pink': '#FF66C4',
+                        'kids-purple': '#8C52FF',
+                        'kids-blue': '#5271FF',
+                        'kids-green': '#00BF63',
+                        'kids-bg': '#F0F8FF'
+                    },
+                    fontFamily: {
+                        'fredoka': ['Fredoka', 'sans-serif'],
+                        'outfit': ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Fredoka', cursive, sans-serif;
+            background-color: #F0F8FF;
+            background-image: radial-gradient(#8C52FF 0.75px, transparent 0.75px), radial-gradient(#5271FF 0.75px, #F0F8FF 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .bounce-hover {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bounce-hover:hover {
+            transform: scale(1.04) rotate(-1deg);
+        }
+        .bounce-hover:active {
+            transform: scale(0.96);
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-7px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* 3D Memory Card Flip */
+        .memory-card {
+            perspective: 1000px;
+        }
+        .memory-card-inner {
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+        .memory-card.flipped .memory-card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Pulse Animation for Selection */
+        .selected-card {
+            animation: pulse-border 1.2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(140, 82, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(140, 82, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(140, 82, 255, 0); }
+        }
+
+        /* Hide scrollbars */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <!-- Top Header -->
+    <header class="bg-white/95 backdrop-blur-md border-b-4 border-kids-purple px-4 py-3 sticky top-0 z-50 shadow-md">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchMode('explore')">
+                <div class="bg-kids-yellow p-2 rounded-2xl border-2 border-slate-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-2xl floating">
+                    👑
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-kids-purple tracking-wide drop-shadow-sm">
+                        Fun<span class="text-kids-orange">English</span> <span class="text-kids-pink">Kids</span>
+                    </h1>
+                    <p class="text-xs font-semibold text-slate-500 hidden sm:block">Aprenda inglês brincando e evoluindo!</p>
+                </div>
+            </div>
+
+            <!-- Stats & Profile -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <div class="flex items-center gap-1.5 bg-amber-100 border-2 border-amber-400 px-3 py-1 rounded-full shadow-sm text-amber-700 font-extrabold text-sm md:text-base">
+                    <i class="fa-solid fa-star text-yellow-400 text-lg md:text-xl drop-shadow"></i>
+                    <span id="starCount">0</span>
+                </div>
+
+                <div class="flex items-center gap-1.5 bg-yellow-100 border-2 border-yellow-500 px-3 py-1 rounded-full shadow-sm text-yellow-800 font-extrabold text-sm md:text-base">
+                    <i class="fa-solid fa-coins text-yellow-500 text-lg md:text-xl"></i>
+                    <span id="coinCount">0</span>
+                </div>
+
+                <button onclick="openBadgesModal()" class="bg-purple-100 hover:bg-purple-200 border-2 border-kids-purple text-kids-purple p-2 rounded-full transition bounce-hover" title="Minhas Conquistas">
+                    <i class="fa-solid fa-trophy text-lg"></i>
+                </button>
+
+                <button id="btnSoundToggle" onclick="toggleMute()" class="text-slate-600 hover:text-kids-purple transition text-xl p-1" title="Som">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Progress Level Progress Bar -->
+    <section class="max-w-6xl mx-auto w-full px-4 mt-4">
+        <div class="bg-white/90 p-3.5 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
+            <div class="text-center md:text-left flex-1">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nível do Pequeno Aprendiz:</span>
+                    <span id="nextLevelText" class="text-xs font-bold text-kids-purple">Próximo desbloqueio: 10 ⭐</span>
+                </div>
+                <div class="w-full bg-slate-200 h-3.5 rounded-full overflow-hidden border border-slate-300">
+                    <div id="levelProgressBar" class="bg-gradient-to-r from-kids-yellow via-kids-orange to-kids-pink h-full transition-all duration-500 rounded-full" style="width: 10%;"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span id="currentLevelBadge" class="bg-kids-purple text-white px-3 py-1 rounded-xl font-black text-xs md:text-sm border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    Nível 1: Aprendiz 🌟
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Navigation Game Modes Tabs -->
+    <nav class="max-w-6xl mx-auto w-full px-4 mt-3">
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-2 bg-white/80 p-2 rounded-2xl border-2 border-slate-200 shadow-sm">
+            <button id="tabExplore" onclick="switchMode('explore')" class="py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-kids-purple text-white shadow-md">
+                <i class="fa-solid fa-book-open text-base"></i>
+                <span>Flashcards</span>
+            </button>
+            <button id="tabQuiz" onclick="switchMode('quiz')" class="py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-slate-100 text-slate-600 hover:bg-slate-200">
+                <i class="fa-solid fa-circle-question text-base"></i>
+                <span>Quiz</span>
+            </button>
+            <button id="tabConnect" onclick="switchMode('connect')" class="py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-slate-100 text-slate-600 hover:bg-slate-200">
+                <i class="fa-solid fa-hand-pointer text-base"></i>
+                <span>Conectar</span>
+            </button>
+            <button id="tabMemory" onclick="switchMode('memory')" class="py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-slate-100 text-slate-600 hover:bg-slate-200">
+                <i class="fa-solid fa-brain text-base"></i>
+                <span>Memória</span>
+            </button>
+            <!-- Modos Adicionais Desbloqueáveis pelos Níveis -->
+            <button id="tabSentence" onclick="switchMode('sentence')" class="py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-slate-100 text-slate-400 hover:bg-slate-200 relative">
+                <i class="fa-solid fa-align-left text-base"></i>
+                <span>Frases</span>
+                <span id="sentenceLockIcon" class="text-xs">🔒</span>
+            </button>
+            <button id="tabStories" onclick="switchMode('stories')" class="py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-slate-100 text-slate-400 hover:bg-slate-200 col-span-2 md:col-span-1 relative">
+                <i class="fa-solid fa-book-bookmark text-base"></i>
+                <span>Histórias</span>
+                <span id="storiesLockIcon" class="text-xs">🔒</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Category Selector Container -->
+    <section class="max-w-6xl mx-auto w-full px-4 mt-3">
+        <div id="categoryContainer" class="flex gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar justify-start md:justify-center">
+            <!-- Categorias dinâmicas -->
+        </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="max-w-6xl mx-auto w-full px-4 my-4 flex-grow">
+
+        <!-- ================= MODO EXPLORAR / FLASHCARDS ================= -->
+        <section id="exploreView" class="space-y-4">
+            <div class="text-center mb-2">
+                <h2 id="categoryTitle" class="text-2xl md:text-3xl font-extrabold text-slate-700">Animais 🐶</h2>
+                <p class="text-slate-500 text-sm md:text-base">Clique nos cartões para ouvir o som da palavra em inglês!</p>
+            </div>
+
+            <!-- Cards Grid (Sempre 8 por categoria para grade perfeita 4x2) -->
+            <div id="cardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <!-- Cards inseridos dinamicamente -->
+            </div>
+        </section>
+
+        <!-- ================= MODO QUIZ ================= -->
+        <section id="quizView" class="hidden max-w-2xl mx-auto">
+            <div class="bg-white rounded-3xl p-6 border-4 border-kids-blue shadow-xl text-center space-y-6 relative overflow-hidden">
+                <div class="flex justify-between items-center border-b-2 border-slate-100 pb-3">
+                    <span class="bg-kids-blue/10 text-kids-blue px-4 py-1 rounded-full font-bold text-sm">
+                        Questão <span id="quizCurrent">1</span>/5
+                    </span>
+                    <span id="quizScoreText" class="text-sm font-bold text-slate-500">Acertos: 0</span>
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-lg text-slate-600 font-semibold">Qual é a opção correta em inglês?</p>
+                    <div class="flex items-center justify-center gap-3">
+                        <h3 id="quizWordTarget" class="text-3xl md:text-4xl font-black text-kids-purple uppercase tracking-wider">
+                            DOG
+                        </h3>
+                        <button id="btnAudioQuiz" onclick="playQuizTargetAudio()" class="w-12 h-12 bg-kids-yellow hover:bg-yellow-400 text-slate-800 rounded-full flex items-center justify-center text-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 border-2 border-slate-800 bounce-hover" title="Ouvir novamente">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="quizOptionsGrid" class="grid grid-cols-2 gap-4 pt-2">
+                    <!-- Opções dinâmicas -->
+                </div>
+
+                <div id="quizFeedback" class="hidden p-3 rounded-2xl font-bold text-lg animate-bounce">
+                    <!-- Feedback -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODO CONECTAR FÁCIL (TAP TO CONNECT) ================= -->
+        <section id="connectView" class="hidden max-w-4xl mx-auto space-y-4">
+            <div class="bg-white rounded-3xl p-6 border-4 border-kids-pink shadow-xl text-center space-y-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-kids-pink">Jogo de Conectar 🧩</h2>
+                    <p class="text-slate-500 text-sm">Clique em uma palavra da esquerda e depois na figura correta da direita!</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <!-- Coluna das Palavras em Inglês -->
+                    <div class="space-y-3">
+                        <h3 class="text-xs uppercase font-extrabold text-slate-400 tracking-wider">1. Escolha a Palavra</h3>
+                        <div id="connectWordsContainer" class="flex flex-col gap-3"></div>
+                    </div>
+
+                    <!-- Coluna das Imagens -->
+                    <div class="space-y-3">
+                        <h3 class="text-xs uppercase font-extrabold text-slate-400 tracking-wider">2. Escolha o Par Correto</h3>
+                        <div id="connectTargetsContainer" class="flex flex-col gap-3"></div>
+                    </div>
+                </div>
+
+                <div id="connectSuccessMessage" class="hidden bg-green-100 border-2 border-green-400 text-green-700 p-4 rounded-2xl font-bold">
+                    🎉 Sensacional! Você conectou tudo perfeitamente! 🌟
+                    <button onclick="setupConnectGame()" class="block mx-auto mt-2 bg-kids-green text-white px-6 py-2 rounded-xl border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover font-bold">
+                        Jogar Novamente 🔄
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODO JOGO DA MEMÓRIA ================= -->
+        <section id="memoryView" class="hidden max-w-3xl mx-auto space-y-4">
+            <div class="bg-white rounded-3xl p-6 border-4 border-kids-purple shadow-xl text-center space-y-4">
+                <div class="flex justify-between items-center border-b-2 border-slate-100 pb-2">
+                    <h2 class="text-xl md:text-2xl font-extrabold text-kids-purple">Jogo da Memória 🧠</h2>
+                    <span id="memoryPairsText" class="text-sm font-bold text-slate-500">Pares: 0/4</span>
+                </div>
+
+                <div id="memoryGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    <!-- Cards de memória -->
+                </div>
+
+                <div id="memoryWinMessage" class="hidden bg-green-100 border-2 border-green-400 text-green-700 p-4 rounded-2xl font-bold space-y-2">
+                    <p class="text-xl">🎉 Incrível! Você encontrou todos os pares!</p>
+                    <button onclick="startMemoryGame()" class="bg-kids-green text-white px-6 py-2 rounded-xl border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover font-bold">
+                        Jogar Novamente!
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODO FRASES (DESBLOQUEÁVEL NO NÍVEL 2) ================= -->
+        <section id="sentenceView" class="hidden max-w-3xl mx-auto space-y-4">
+            <div id="sentenceUnlockedContent" class="bg-white rounded-3xl p-6 border-4 border-kids-orange shadow-xl text-center space-y-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-kids-orange">Monte a Frase! ✍️</h2>
+                    <p class="text-slate-500 text-sm">Clique nas palavras na ordem correta para montar a frase em inglês!</p>
+                </div>
+
+                <div class="bg-orange-50 p-4 rounded-2xl border-2 border-orange-200 flex flex-col md:flex-row items-center justify-center gap-4">
+                    <span id="sentenceEmoji" class="text-6xl">🍎</span>
+                    <div class="text-left">
+                        <span class="text-xs uppercase font-bold text-slate-400">Tradução em Português:</span>
+                        <p id="sentencePortuguese" class="text-xl font-bold text-slate-700">Eu gosto de maçãs.</p>
+                    </div>
+                    <button onclick="speakSentenceTarget()" class="w-12 h-12 bg-kids-yellow rounded-full flex items-center justify-center border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover text-xl ml-auto">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
+
+                <div id="sentenceSlot" class="min-h-[60px] bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl p-3 flex flex-wrap gap-2 items-center justify-center">
+                    <!-- Palavras selecionadas -->
+                </div>
+
+                <div id="sentenceBank" class="flex flex-wrap gap-2 justify-center pt-2">
+                    <!-- Palavras para clicar -->
+                </div>
+
+                <div id="sentenceActions" class="flex justify-center gap-4 pt-2">
+                    <button onclick="resetSentenceSlots()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl font-bold text-sm border-2 border-slate-400">
+                        Reiniciar 🔄
+                    </button>
+                    <button onclick="checkSentence()" class="bg-kids-green text-white px-6 py-2 rounded-xl font-bold text-base border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover">
+                        Verificar 🚀
+                    </button>
+                </div>
+
+                <div id="sentenceFeedback" class="hidden p-3 rounded-2xl font-bold text-lg">
+                    <!-- Feedback -->
+                </div>
+            </div>
+
+            <!-- Bloqueado Overlay -->
+            <div id="sentenceLockedContent" class="hidden bg-white rounded-3xl p-8 border-4 border-slate-300 text-center space-y-4 shadow-lg">
+                <div class="text-6xl">🔒</div>
+                <h3 class="text-2xl font-black text-slate-700">Modo Frases Bloqueado</h3>
+                <p class="text-slate-500 max-w-md mx-auto">Ganhe <span class="font-extrabold text-amber-500">10 Estrelas ⭐</span> no Quiz ou no Jogo da Memória para liberar o Construtor de Frases!</p>
+                <button onclick="switchMode('quiz')" class="bg-kids-yellow text-slate-800 font-bold px-6 py-2.5 rounded-xl border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover">
+                    Ir para o Quiz e Ganhar Estrelas ⭐
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= MODO HISTÓRIAS (DESBLOQUEÁVEL NO NÍVEL 3) ================= -->
+        <section id="storiesView" class="hidden max-w-3xl mx-auto space-y-4">
+            <div id="storiesUnlockedContent" class="bg-white rounded-3xl p-6 border-4 border-kids-green shadow-xl text-center space-y-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-kids-green">Histórias Curta em Inglês 📖</h2>
+                    <p class="text-slate-500 text-sm">Escute a historinha e responda à pergunta sobre ela!</p>
+                </div>
+
+                <div class="bg-green-50 p-5 rounded-2xl border-2 border-green-200 text-left space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 id="storyTitle" class="text-xl font-black text-kids-purple">The Friendly Cat</h3>
+                        <button onclick="speakCurrentStory()" class="bg-kids-yellow text-slate-800 p-2.5 rounded-full border-2 border-slate-800 shadow-sm bounce-hover">
+                            <i class="fa-solid fa-volume-high text-lg"></i>
+                        </button>
+                    </div>
+                    <p id="storyText" class="text-lg font-semibold text-slate-700 leading-relaxed bg-white p-4 rounded-xl border border-green-100">
+                        <!-- Texto da História -->
+                    </p>
+                </div>
+
+                <div class="space-y-3 text-left">
+                    <h4 id="storyQuestionText" class="font-bold text-slate-700 text-base">Pergunta: O que o gato gosta de fazer?</h4>
+                    <div id="storyOptionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Opções da história -->
+                    </div>
+                </div>
+
+                <div id="storyFeedback" class="hidden p-3 rounded-2xl font-bold text-lg">
+                    <!-- Feedback -->
+                </div>
+            </div>
+
+            <!-- Bloqueado Overlay -->
+            <div id="storiesLockedContent" class="hidden bg-white rounded-3xl p-8 border-4 border-slate-300 text-center space-y-4 shadow-lg">
+                <div class="text-6xl">🔒</div>
+                <h3 class="text-2xl font-black text-slate-700">Mini-Histórias Bloqueadas</h3>
+                <p class="text-slate-500 max-w-md mx-auto">Alcance o <span class="font-extrabold text-kids-purple">Nível 3 (25 Estrelas ⭐)</span> para liberar historinhas completas em inglês!</p>
+                <button onclick="switchMode('quiz')" class="bg-kids-yellow text-slate-800 font-bold px-6 py-2.5 rounded-xl border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover">
+                    Ganhar Mais Estrelas ⭐
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal de Conquistas / Badges -->
+    <div id="badgesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl border-4 border-kids-purple max-w-md w-full p-6 text-center space-y-4 relative shadow-2xl animate-scale-up">
+            <button onclick="closeBadgesModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold">
+                &times;
+            </button>
+            <h3 class="text-2xl font-black text-kids-purple">🏆 Minhas Conquistas</h3>
+            <p class="text-xs text-slate-500">Continue jogando para ganhar mais troféus!</p>
+
+            <div id="badgesList" class="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto p-1">
+                <!-- Badges geradas via JS -->
+            </div>
+
+            <button onclick="closeBadgesModal()" class="w-full bg-kids-purple text-white py-3 rounded-2xl font-bold border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover">
+                Fechar
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white/80 border-t-2 border-slate-200 py-3 text-center text-xs text-slate-500">
+        <p>FunEnglish Kids - Aprenda inglês com todas as categorias completas e evolução progressiva! 🎈✨</p>
+    </footer>
+
+    <script>
+        /* ================= TODAS AS CATEGORIAS COM 8 ITENS PARIDADE VISUAL (4x2) ================= */
+        const allCategories = [
+            {
+                id: 'animals',
+                name: 'Animais',
+                icon: '🐾',
+                color: 'bg-amber-400 text-slate-800',
+                borderColor: 'border-amber-500',
+                reqStars: 0, // Liberado desde o inicio
+                items: [
+                    { en: 'Dog', pt: 'Cachorro', emoji: '🐶' },
+                    { en: 'Cat', pt: 'Gato', emoji: '🐱' },
+                    { en: 'Lion', pt: 'Leão', emoji: '🦁' },
+                    { en: 'Elephant', pt: 'Elefante', emoji: '🐘' },
+                    { en: 'Monkey', pt: 'Macaco', emoji: '🐒' },
+                    { en: 'Bear', pt: 'Urso', emoji: '🐻' },
+                    { en: 'Pig', pt: 'Porco', emoji: '🐷' },
+                    { en: 'Duck', pt: 'Pato', emoji: '🦆' }
+                ]
+            },
+            {
+                id: 'colors',
+                name: 'Cores',
+                icon: '🎨',
+                color: 'bg-kids-pink text-white',
+                borderColor: 'border-pink-600',
+                reqStars: 0,
+                items: [
+                    { en: 'Red', pt: 'Vermelho', emoji: '🟥' },
+                    { en: 'Blue', pt: 'Azul', emoji: '🟦' },
+                    { en: 'Yellow', pt: 'Amarelo', emoji: '🟨' },
+                    { en: 'Green', pt: 'Verde', emoji: '🟩' },
+                    { en: 'Purple', pt: 'Roxo', emoji: '🟪' },
+                    { en: 'Orange', pt: 'Laranja', emoji: '🟧' },
+                    { en: 'Pink', pt: 'Rosa', emoji: '🦩' },
+                    { en: 'White', pt: 'Branco', emoji: '⬜' }
+                ]
+            },
+            {
+                id: 'fruits',
+                name: 'Frutas',
+                icon: '🍎',
+                color: 'bg-red-400 text-white',
+                borderColor: 'border-red-600',
+                reqStars: 0,
+                items: [
+                    { en: 'Apple', pt: 'Maçã', emoji: '🍎' },
+                    { en: 'Banana', pt: 'Banana', emoji: '🍌' },
+                    { en: 'Orange', pt: 'Laranja', emoji: '🍊' },
+                    { en: 'Grapes', pt: 'Uvas', emoji: '🍇' },
+                    { en: 'Watermelon', pt: 'Melancia', emoji: '🍉' },
+                    { en: 'Strawberry', pt: 'Morango', emoji: '🍓' },
+                    { en: 'Pineapple', pt: 'Abacaxi', emoji: '🍍' },
+                    { en: 'Peach', pt: 'Pêssego', emoji: '🍑' }
+                ]
+            },
+            {
+                id: 'numbers',
+                name: 'Números',
+                icon: '🔢',
+                color: 'bg-kids-blue text-white',
+                borderColor: 'border-blue-600',
+                reqStars: 0,
+                items: [
+                    { en: 'One', pt: 'Um (1)', emoji: '1️⃣' },
+                    { en: 'Two', pt: 'Dois (2)', emoji: '2️⃣' },
+                    { en: 'Three', pt: 'Três (3)', emoji: '3️⃣' },
+                    { en: 'Four', pt: 'Quatro (4)', emoji: '4️⃣' },
+                    { en: 'Five', pt: 'Cinco (5)', emoji: '5️⃣' },
+                    { en: 'Six', pt: 'Seis (6)', emoji: '6️⃣' },
+                    { en: 'Seven', pt: 'Sete (7)', emoji: '7️⃣' },
+                    { en: 'Eight', pt: 'Oito (8)', emoji: '8️⃣' }
+                ]
+            },
+            {
+                id: 'family',
+                name: 'Família',
+                icon: '👨‍👩‍👧',
+                color: 'bg-purple-400 text-white',
+                borderColor: 'border-purple-600',
+                reqStars: 0,
+                items: [
+                    { en: 'Father', pt: 'Pai', emoji: '👨' },
+                    { en: 'Mother', pt: 'Mãe', emoji: '👩' },
+                    { en: 'Brother', pt: 'Irmão', emoji: '👦' },
+                    { en: 'Sister', pt: 'Irmã', emoji: '👧' },
+                    { en: 'Baby', pt: 'Bebê', emoji: '👶' },
+                    { en: 'Grandfather', pt: 'Vovô', emoji: '👴' },
+                    { en: 'Grandmother', pt: 'Vovó', emoji: '👵' },
+                    { en: 'Family', pt: 'Família', emoji: '👨‍👩‍👧' }
+                ]
+            },
+            // Categorias Adicionais Desbloqueadas com Progresso de Estrelas
+            {
+                id: 'actions',
+                name: 'Ações (Nível 2)',
+                icon: '🏃',
+                color: 'bg-emerald-500 text-white',
+                borderColor: 'border-emerald-700',
+                reqStars: 10,
+                items: [
+                    { en: 'Run', pt: 'Correr', emoji: '🏃' },
+                    { en: 'Jump', pt: 'Pular', emoji: '🦘' },
+                    { en: 'Eat', pt: 'Comer', emoji: '🍽️' },
+                    { en: 'Sleep', pt: 'Dormir', emoji: '😴' },
+                    { en: 'Dance', pt: 'Dançar', emoji: '💃' },
+                    { en: 'Sing', pt: 'Cantar', emoji: '🎤' },
+                    { en: 'Read', pt: 'Ler', emoji: '📖' },
+                    { en: 'Fly', pt: 'Voar', emoji: '🕊️' }
+                ]
+            },
+            {
+                id: 'city',
+                name: 'Lugares (Nível 3)',
+                icon: '🏙️',
+                color: 'bg-indigo-500 text-white',
+                borderColor: 'border-indigo-700',
+                reqStars: 25,
+                items: [
+                    { en: 'House', pt: 'Casa', emoji: '🏠' },
+                    { en: 'School', pt: 'Escola', emoji: '🏫' },
+                    { en: 'Park', pt: 'Parque', emoji: '🛝' },
+                    { en: 'Hospital', pt: 'Hospital', emoji: '🏥' },
+                    { en: 'Beach', pt: 'Praia', emoji: '🏖️' },
+                    { en: 'Store', pt: 'Loja', emoji: '🏬' },
+                    { en: 'Zoo', pt: 'Zoológico', emoji: '🦁' },
+                    { en: 'Farm', pt: 'Fazenda', emoji: '🚜' }
+                ]
+            }
+        ];
+
+        // Base de Frases
+        const sentencesDatabase = [
+            { en: ["I", "like", "apples"], pt: "Eu gosto de maçãs.", emoji: "🍎" },
+            { en: ["The", "dog", "is", "happy"], pt: "O cachorro está feliz.", emoji: "🐶" },
+            { en: ["I", "have", "a", "cat"], pt: "Eu tenho um gato.", emoji: "🐱" },
+            { en: ["This", "is", "red"], pt: "Isto é vermelho.", emoji: "🟥" },
+            { en: ["She", "can", "run"], pt: "Ela sabe correr.", emoji: "🏃" }
+        ];
+
+        // Base de Histórias Curta
+        const storiesDatabase = [
+            {
+                title: "The Friendly Cat",
+                text: "Leo is a small orange cat. Leo loves to play with a blue ball. Every day, Leo eats milk and sleeps in the warm sun.",
+                question: "Qual é a cor da bola do Leo?",
+                options: [
+                    { text: "Azul (Blue)", correct: true },
+                    { text: "Vermelha (Red)", correct: false },
+                    { text: "Amarela (Yellow)", correct: false }
+                ]
+            },
+            {
+                title: "A Day at the Park",
+                text: "Mia goes to the park with her dog, Max. Max runs fast and jumps. They eat red apples under a big green tree.",
+                question: "O que Mia e Max comem no parque?",
+                options: [
+                    { text: "Maçãs vermelhas", correct: true },
+                    { text: "Pizza", correct: false },
+                    { text: "Biscoitos", correct: false }
+                ]
+            }
+        ];
+
+        // Base de Conquistas
+        const badgesDatabase = [
+            { id: 'first_star', name: 'Primeiro Passo', desc: 'Ganhou sua primeira estrela!', icon: '⭐', reqStars: 1 },
+            { id: 'star_10', name: 'Aprendiz Dedicado', desc: 'Acumulou 10 estrelas e liberou Nível 2!', icon: '🌟', reqStars: 10 },
+            { id: 'star_25', name: 'Mestre da Língua', desc: 'Acumulou 25 estrelas e liberou Nível 3!', icon: '👑', reqStars: 25 }
+        ];
+
+        /* ================= ESTADO GLOBAL DA APLICAÇÃO ================= */
+        let userState = {
+            stars: 0,
+            coins: 0,
+            unlockedBadges: []
+        };
+
+        let currentCategoryIndex = 0;
+        let currentMode = 'explore';
+        let soundMuted = false;
+
+        // Quiz State
+        let quizQuestionIndex = 0;
+        let quizScore = 0;
+        let quizTargetItem = null;
+
+        // Memory Game State
+        let memoryCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+
+        // Connect Game State (Tap to Connect)
+        let selectedConnectWord = null;
+        let connectMatchedCount = 0;
+
+        // Sentence Builder State
+        let currentSentenceObj = null;
+        let selectedWords = [];
+
+        // Stories State
+        let currentStoryIndex = 0;
+
+        // Web Audio
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function loadSavedState() {
+            const saved = localStorage.getItem('funEnglishKidsState');
+            if (saved) {
+                try {
+                    userState = JSON.parse(saved);
+                } catch (e) {}
+            }
+            updateStatsAndLevelDisplay();
+            checkBadgeUnlocks();
+        }
+
+        function saveState() {
+            localStorage.setItem('funEnglishKidsState', JSON.stringify(userState));
+            updateStatsAndLevelDisplay();
+            checkBadgeUnlocks();
+        }
+
+        function updateStatsAndLevelDisplay() {
+            document.getElementById('starCount').innerText = userState.stars;
+            document.getElementById('coinCount').innerText = userState.coins;
+
+            // Calcular Nível Atual com base nas Estrelas
+            let levelName = "Nível 1: Aprendiz 🌟";
+            let nextText = "Próximo desbloqueio: 10 ⭐ (Nível 2)";
+            let progressPercent = (userState.stars / 10) * 100;
+
+            if (userState.stars >= 25) {
+                levelName = "Nível 3: Mestre 👑";
+                nextText = "Nível Máximo Alcançado! 🎉";
+                progressPercent = 100;
+            } else if (userState.stars >= 10) {
+                levelName = "Nível 2: Aventureiro 🚀";
+                nextText = "Próximo desbloqueio: 25 ⭐ (Nível 3)";
+                progressPercent = ((userState.stars - 10) / 15) * 100;
+            }
+
+            document.getElementById('currentLevelBadge').innerText = levelName;
+            document.getElementById('nextLevelText').innerText = nextText;
+            document.getElementById('levelProgressBar').style.width = `${Math.min(100, Math.max(5, progressPercent))}%`;
+
+            // Atualizar travas dos botões de modo
+            const sentenceLock = document.getElementById('sentenceLockIcon');
+            const storiesLock = document.getElementById('storiesLockIcon');
+
+            if (userState.stars >= 10) {
+                sentenceLock.innerText = '✅';
+                document.getElementById('tabSentence').className = document.getElementById('tabSentence').className.replace('text-slate-400', 'text-slate-700');
+            }
+            if (userState.stars >= 25) {
+                storiesLock.innerText = '✅';
+                document.getElementById('tabStories').className = document.getElementById('tabStories').className.replace('text-slate-400', 'text-slate-700');
+            }
+        }
+
+        function addStarsAndCoins(sAmount, cAmount) {
+            userState.stars += sAmount;
+            userState.coins += cAmount;
+            saveState();
+            playSoundEffect('star');
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 40, spread: 50, origin: { y: 0.2 } });
+            }
+        }
+
+        /* ================= SONS SINTETIZADOS ================= */
+        function playSoundEffect(type) {
+            if (soundMuted) return;
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                const now = ctx.currentTime;
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.setValueAtTime(150, now + 0.15);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(450, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'star') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, now);
+                    osc.frequency.setValueAtTime(1320, now + 0.1);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                }
+            } catch (e) {}
+        }
+
+        /* ================= SÍNTESE DE VOZ ================= */
+        function speakEnglish(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            utterance.pitch = 1.2;
+
+            const voices = window.speechSynthesis.getVoices();
+            const usVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US'));
+            if (usVoice) utterance.voice = usVoice;
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleMute() {
+            soundMuted = !soundMuted;
+            const icon = document.getElementById('soundIcon');
+            icon.className = soundMuted ? 'fa-solid fa-volume-xmark text-red-400' : 'fa-solid fa-volume-high';
+            if (!soundMuted) playSoundEffect('click');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedState();
+            renderCategoryTabs();
+            renderExploreCards();
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+            }
+        });
+
+        function getCurrentCategory() {
+            return allCategories[currentCategoryIndex] || allCategories[0];
+        }
+
+        function renderCategoryTabs() {
+            const container = document.getElementById('categoryContainer');
+            container.innerHTML = '';
+
+            allCategories.forEach((cat, index) => {
+                const isUnlocked = userState.stars >= cat.reqStars;
+                const isActive = index === currentCategoryIndex;
+
+                const btn = document.createElement('button');
+                btn.onclick = () => {
+                    if (!isUnlocked) {
+                        playSoundEffect('wrong');
+                        alert(`🔒 Esta categoria é desbloqueada com ${cat.reqStars} Estrelas! Continue jogando.`);
+                        return;
+                    }
+                    playSoundEffect('click');
+                    currentCategoryIndex = index;
+                    renderCategoryTabs();
+                    if (currentMode === 'explore') renderExploreCards();
+                    if (currentMode === 'quiz') startQuiz();
+                    if (currentMode === 'connect') setupConnectGame();
+                    if (currentMode === 'memory') startMemoryGame();
+                };
+
+                btn.className = `flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs md:text-sm whitespace-nowrap transition border-2 ${
+                    isUnlocked ? cat.borderColor : 'border-slate-300'
+                } ${
+                    isActive && isUnlocked ? `${cat.color} scale-105 shadow-md` :
+                    isUnlocked ? 'bg-white text-slate-600 hover:bg-slate-100' :
+                    'bg-slate-200 text-slate-400 cursor-not-allowed opacity-80'
+                }`;
+
+                btn.innerHTML = `
+                    <span>${isUnlocked ? cat.icon : '🔒'}</span>
+                    <span>${cat.name}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function switchMode(mode) {
+            playSoundEffect('click');
+
+            // Checar se o modo está liberado
+            if (mode === 'sentence' && userState.stars < 10) {
+                document.getElementById('sentenceUnlockedContent').classList.add('hidden');
+                document.getElementById('sentenceLockedContent').classList.remove('hidden');
+            } else if (mode === 'sentence') {
+                document.getElementById('sentenceUnlockedContent').classList.remove('hidden');
+                document.getElementById('sentenceLockedContent').classList.add('hidden');
+            }
+
+            if (mode === 'stories' && userState.stars < 25) {
+                document.getElementById('storiesUnlockedContent').classList.add('hidden');
+                document.getElementById('storiesLockedContent').classList.remove('hidden');
+            } else if (mode === 'stories') {
+                document.getElementById('storiesUnlockedContent').classList.remove('hidden');
+                document.getElementById('storiesLockedContent').classList.add('hidden');
+            }
+
+            currentMode = mode;
+
+            ['exploreView', 'quizView', 'connectView', 'memoryView', 'sentenceView', 'storiesView'].forEach(v => {
+                document.getElementById(v).classList.add('hidden');
+            });
+
+            ['tabExplore', 'tabQuiz', 'tabConnect', 'tabMemory', 'tabSentence', 'tabStories'].forEach(t => {
+                document.getElementById(t).className = "py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-slate-100 text-slate-600 hover:bg-slate-200 relative";
+            });
+
+            if (mode === 'explore') {
+                document.getElementById('exploreView').classList.remove('hidden');
+                document.getElementById('tabExplore').className = "py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-kids-purple text-white shadow-md relative";
+                renderExploreCards();
+            } else if (mode === 'quiz') {
+                document.getElementById('quizView').classList.remove('hidden');
+                document.getElementById('tabQuiz').className = "py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-kids-blue text-white shadow-md relative";
+                startQuiz();
+            } else if (mode === 'connect') {
+                document.getElementById('connectView').classList.remove('hidden');
+                document.getElementById('tabConnect').className = "py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-kids-pink text-white shadow-md relative";
+                setupConnectGame();
+            } else if (mode === 'memory') {
+                document.getElementById('memoryView').classList.remove('hidden');
+                document.getElementById('tabMemory').className = "py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-kids-purple text-white shadow-md relative";
+                startMemoryGame();
+            } else if (mode === 'sentence') {
+                document.getElementById('sentenceView').classList.remove('hidden');
+                document.getElementById('tabSentence').className = "py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-kids-orange text-white shadow-md relative";
+                if (userState.stars >= 10) startSentenceBuilder();
+            } else if (mode === 'stories') {
+                document.getElementById('storiesView').classList.remove('hidden');
+                document.getElementById('tabStories').className = "py-2.5 px-2 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition bounce-hover bg-kids-green text-white shadow-md col-span-2 md:col-span-1 relative";
+                if (userState.stars >= 25) loadStory();
+            }
+        }
+
+        /* ================= MODO EXPLORAR / FLASHCARDS ================= */
+        function renderExploreCards() {
+            const cat = getCurrentCategory();
+            document.getElementById('categoryTitle').innerHTML = `${cat.name} ${cat.icon}`;
+
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+
+            cat.items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-3xl p-4 border-4 border-slate-200 hover:border-kids-purple shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-between text-center cursor-pointer bounce-hover group relative overflow-hidden";
+
+                card.onclick = () => {
+                    speakEnglish(item.en);
+                };
+
+                card.innerHTML = `
+                    <div class="absolute top-3 right-3 text-slate-300 group-hover:text-kids-purple transition">
+                        <i class="fa-solid fa-volume-high text-lg"></i>
+                    </div>
+                    <div class="text-5xl md:text-6xl my-3 transition-transform duration-300 group-hover:scale-110">
+                        ${item.emoji}
+                    </div>
+                    <div class="w-full bg-slate-50 rounded-2xl py-2 px-1 border border-slate-100 group-hover:bg-kids-purple/10 transition">
+                        <h3 class="text-lg md:text-xl font-black text-kids-purple uppercase tracking-wide">
+                            ${item.en}
+                        </h3>
+                        <p class="text-xs md:text-sm font-semibold text-slate-400">
+                            ${item.pt}
+                        </p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        /* ================= MODO QUIZ ================= */
+        function startQuiz() {
+            quizQuestionIndex = 0;
+            quizScore = 0;
+            document.getElementById('quizScoreText').innerText = `Acertos: ${quizScore}`;
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            document.getElementById('quizFeedback').classList.add('hidden');
+            const cat = getCurrentCategory();
+
+            document.getElementById('quizCurrent').innerText = quizQuestionIndex + 1;
+
+            const shuffledItems = [...cat.items].sort(() => 0.5 - Math.random());
+            quizTargetItem = shuffledItems[0];
+
+            const quizCurrentItems = shuffledItems.slice(0, 4).sort(() => 0.5 - Math.random());
+
+            document.getElementById('quizWordTarget').innerText = quizTargetItem.en;
+            setTimeout(() => speakEnglish(quizTargetItem.en), 300);
+
+            const grid = document.getElementById('quizOptionsGrid');
+            grid.innerHTML = '';
+
+            quizCurrentItems.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = "bg-slate-50 hover:bg-slate-100 border-4 border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 bounce-hover transition shadow-md";
+
+                btn.onclick = () => checkQuizAnswer(item, btn);
+
+                btn.innerHTML = `
+                    <span class="text-4xl md:text-5xl">${item.emoji}</span>
+                    <span class="text-xs md:text-sm font-bold text-slate-500">${item.pt}</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function playQuizTargetAudio() {
+            if (quizTargetItem) speakEnglish(quizTargetItem.en);
+        }
+
+        function checkQuizAnswer(selectedItem, btnElement) {
+            const feedbackEl = document.getElementById('quizFeedback');
+            feedbackEl.classList.remove('hidden');
+
+            if (selectedItem.en === quizTargetItem.en) {
+                playSoundEffect('correct');
+                addStarsAndCoins(1, 2);
+                quizScore++;
+                document.getElementById('quizScoreText').innerText = `Acertos: ${quizScore}`;
+
+                btnElement.className = "bg-green-100 border-4 border-kids-green rounded-2xl p-4 flex flex-col items-center justify-center gap-2 scale-105 transition shadow-lg";
+                feedbackEl.className = "p-3 rounded-2xl font-bold text-lg bg-green-100 text-green-700 border-2 border-green-300 animate-bounce";
+                feedbackEl.innerHTML = "🌟 Muito Bem! Resposta Correta! 🎉";
+
+                const buttons = document.querySelectorAll('#quizOptionsGrid button');
+                buttons.forEach(b => b.disabled = true);
+
+                setTimeout(() => {
+                    quizQuestionIndex++;
+                    if (quizQuestionIndex < 4) {
+                        loadQuizQuestion();
+                    } else {
+                        finishQuiz();
+                    }
+                }, 1200);
+            } else {
+                playSoundEffect('wrong');
+                btnElement.className = "bg-red-100 border-4 border-red-400 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 opacity-60 transition";
+                feedbackEl.className = "p-3 rounded-2xl font-bold text-lg bg-red-100 text-red-600 border-2 border-red-300";
+                feedbackEl.innerHTML = "Ops! Tente de novo! 😅";
+            }
+        }
+
+        function finishQuiz() {
+            const grid = document.getElementById('quizOptionsGrid');
+            grid.innerHTML = `
+                <div class="col-span-2 py-6 space-y-4">
+                    <div class="text-6xl">🏆</div>
+                    <h3 class="text-2xl font-black text-kids-purple">Quiz Concluído!</h3>
+                    <p class="text-lg text-slate-600">Você acertou <span class="font-extrabold text-kids-green">${quizScore}</span> de 4!</p>
+                    <button onclick="startQuiz()" class="bg-kids-yellow hover:bg-yellow-400 text-slate-800 font-bold px-6 py-3 rounded-2xl border-2 border-slate-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] bounce-hover text-lg">
+                        Jogar Novamente 🔄
+                    </button>
+                </div>
+            `;
+            document.getElementById('quizWordTarget').innerText = "FIM!";
+            document.getElementById('quizFeedback').classList.add('hidden');
+        }
+
+        /* ================= MODO CONECTAR FÁCIL (TAP TO CONNECT) ================= */
+        function setupConnectGame() {
+            selectedConnectWord = null;
+            connectMatchedCount = 0;
+            document.getElementById('connectSuccessMessage').classList.add('hidden');
+
+            const cat = getCurrentCategory();
+            const items = [...cat.items].sort(() => 0.5 - Math.random()).slice(0, 4);
+
+            const words = [...items].sort(() => 0.5 - Math.random());
+            const targets = [...items].sort(() => 0.5 - Math.random());
+
+            const wordsContainer = document.getElementById('connectWordsContainer');
+            const targetsContainer = document.getElementById('connectTargetsContainer');
+
+            wordsContainer.innerHTML = '';
+            targetsContainer.innerHTML = '';
+
+            words.forEach(item => {
+                const btn = document.createElement('button');
+                btn.id = `connect-word-${item.en}`;
+                btn.className = "bg-kids-purple text-white font-extrabold text-lg py-3 px-4 rounded-2xl border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between transition bounce-hover";
+
+                btn.onclick = () => selectConnectWord(item, btn);
+                btn.innerHTML = `<span>${item.en}</span> <i class="fa-solid fa-volume-high text-sm"></i>`;
+                wordsContainer.appendChild(btn);
+            });
+
+            targets.forEach(item => {
+                const btn = document.createElement('button');
+                btn.id = `connect-target-${item.en}`;
+                btn.className = "bg-slate-50 border-4 border-slate-200 rounded-2xl p-2.5 flex items-center justify-between gap-2 transition hover:bg-slate-100 min-h-[64px]";
+
+                btn.onclick = () => selectConnectTarget(item, btn);
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">${item.emoji}</span>
+                        <span class="text-sm font-bold text-slate-600">${item.pt}</span>
+                    </div>
+                    <span class="text-xs font-bold text-slate-300 uppercase">Toque aqui</span>
+                `;
+                targetsContainer.appendChild(btn);
+            });
+        }
+
+        function selectConnectWord(item, btnEl) {
+            playSoundEffect('click');
+            speakEnglish(item.en);
+
+            // Remover seleção anterior
+            document.querySelectorAll('#connectWordsContainer button').forEach(b => {
+                b.classList.remove('selected-card', 'ring-4', 'ring-kids-yellow');
+            });
+
+            selectedConnectWord = item;
+            btnEl.classList.add('selected-card', 'ring-4', 'ring-kids-yellow');
+        }
+
+        function selectConnectTarget(item, btnEl) {
+            if (!selectedConnectWord) {
+                playSoundEffect('click');
+                alert("👉 Clique primeiro em uma palavra em inglês no lado esquerdo!");
+                return;
+            }
+
+            if (selectedConnectWord.en === item.en) {
+                // Par Correto!
+                playSoundEffect('correct');
+
+                const wordBtn = document.getElementById(`connect-word-${selectedConnectWord.en}`);
+                if (wordBtn) {
+                    wordBtn.disabled = true;
+                    wordBtn.className = "bg-slate-200 text-slate-400 font-bold text-lg py-3 px-4 rounded-2xl border-2 border-slate-300 opacity-50 flex items-center justify-between";
+                }
+
+                btnEl.disabled = true;
+                btnEl.className = "bg-green-100 border-4 border-kids-green rounded-2xl p-2.5 flex items-center justify-between gap-2 shadow-sm";
+                btnEl.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">${item.emoji}</span>
+                        <span class="text-base font-black text-kids-purple uppercase">${item.en}</span>
+                    </div>
+                    <span class="text-2xl">✅</span>
+                `;
+
+                selectedConnectWord = null;
+                connectMatchedCount++;
+
+                if (connectMatchedCount === 4) {
+                    addStarsAndCoins(2, 3);
+                    setTimeout(() => {
+                        document.getElementById('connectSuccessMessage').classList.remove('hidden');
+                    }, 400);
+                }
+            } else {
+                // Par Errado
+                playSoundEffect('wrong');
+                btnEl.classList.add('bg-red-100', 'border-red-400');
+                setTimeout(() => btnEl.classList.remove('bg-red-100', 'border-red-400'), 600);
+            }
+        }
+
+        /* ================= MODO JOGO DA MEMÓRIA ================= */
+        function startMemoryGame() {
+            matchedPairs = 0;
+            flippedCards = [];
+            document.getElementById('memoryWinMessage').classList.add('hidden');
+
+            const cat = getCurrentCategory();
+            const items = [...cat.items].sort(() => 0.5 - Math.random()).slice(0, 4);
+
+            document.getElementById('memoryPairsText').innerText = `Pares: 0/4`;
+
+            memoryCards = [];
+            items.forEach((item, idx) => {
+                memoryCards.push({ id: idx, type: 'emoji', value: item.emoji, matchKey: item.en });
+                memoryCards.push({ id: idx, type: 'text', value: item.en, matchKey: item.en });
+            });
+
+            memoryCards.sort(() => 0.5 - Math.random());
+
+            const grid = document.getElementById('memoryGrid');
+            grid.innerHTML = '';
+
+            memoryCards.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = "memory-card h-28 cursor-pointer";
+                cardEl.innerHTML = `
+                    <div class="memory-card-inner w-full h-full relative rounded-2xl shadow-md border-2 border-slate-800" id="mcard-${index}">
+                        <div class="card-front absolute inset-0 bg-kids-purple rounded-2xl flex items-center justify-center text-3xl text-white font-black">
+                            ❓
+                        </div>
+                        <div class="card-back absolute inset-0 bg-white rounded-2xl flex flex-col items-center justify-center p-2 text-center border-2 border-kids-purple">
+                            ${card.type === 'emoji' ? `<span class="text-4xl">${card.value}</span>` : `<span class="text-base font-extrabold text-kids-purple uppercase">${card.value}</span>`}
+                        </div>
+                    </div>
+                `;
+
+                cardEl.onclick = () => flipMemoryCard(index, card, cardEl);
+                grid.appendChild(cardEl);
+            });
+        }
+
+        function flipMemoryCard(index, cardObj, cardEl) {
+            if (flippedCards.length >= 2 || cardEl.classList.contains('flipped')) return;
+
+            playSoundEffect('click');
+            cardEl.classList.add('flipped');
+            flippedCards.push({ index, cardObj, cardEl });
+
+            if (cardObj.type === 'text') speakEnglish(cardObj.value);
+
+            if (flippedCards.length === 2) {
+                const [first, second] = flippedCards;
+
+                if (first.cardObj.matchKey === second.cardObj.matchKey) {
+                    playSoundEffect('correct');
+                    matchedPairs++;
+                    document.getElementById('memoryPairsText').innerText = `Pares: ${matchedPairs}/4`;
+                    flippedCards = [];
+
+                    if (matchedPairs === 4) {
+                        addStarsAndCoins(2, 3);
+                        setTimeout(() => {
+                            document.getElementById('memoryWinMessage').classList.remove('hidden');
+                        }, 600);
+                    }
+                } else {
+                    setTimeout(() => {
+                        first.cardEl.classList.remove('flipped');
+                        second.cardEl.classList.remove('flipped');
+                        flippedCards = [];
+                    }, 1000);
+                }
+            }
+        }
+
+        /* ================= MODO CONSTRUTOR DE FRASES ================= */
+        function startSentenceBuilder() {
+            document.getElementById('sentenceFeedback').classList.add('hidden');
+            currentSentenceObj = sentencesDatabase[Math.floor(Math.random() * sentencesDatabase.length)];
+            selectedWords = [];
+
+            document.getElementById('sentenceEmoji').innerText = currentSentenceObj.emoji;
+            document.getElementById('sentencePortuguese').innerText = currentSentenceObj.pt;
+
+            resetSentenceSlots();
+        }
+
+        function speakSentenceTarget() {
+            if (currentSentenceObj) {
+                speakEnglish(currentSentenceObj.en.join(' '));
+            }
+        }
+
+        function resetSentenceSlots() {
+            selectedWords = [];
+            document.getElementById('sentenceFeedback').classList.add('hidden');
+
+            const slot = document.getElementById('sentenceSlot');
+            slot.innerHTML = `<span class="text-slate-400 text-sm italic">Clique nas palavras abaixo para montar...</span>`;
+
+            const shuffledWords = [...currentSentenceObj.en].sort(() => 0.5 - Math.random());
+            const bank = document.getElementById('sentenceBank');
+            bank.innerHTML = '';
+
+            shuffledWords.forEach((word) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white hover:bg-orange-100 text-slate-800 font-extrabold text-base px-4 py-2 rounded-xl border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover";
+                btn.innerText = word;
+                btn.onclick = () => selectSentenceWord(word, btn);
+                bank.appendChild(btn);
+            });
+        }
+
+        function selectSentenceWord(word, btnEl) {
+            playSoundEffect('click');
+            selectedWords.push(word);
+            btnEl.disabled = true;
+            btnEl.classList.add('opacity-40');
+
+            renderSentenceSlots();
+        }
+
+        function renderSentenceSlots() {
+            const slot = document.getElementById('sentenceSlot');
+            slot.innerHTML = '';
+
+            selectedWords.forEach((word) => {
+                const wTag = document.createElement('span');
+                wTag.className = "bg-kids-orange text-white font-extrabold text-base px-3 py-1.5 rounded-xl border-2 border-slate-800 shadow-sm animate-scale-up";
+                wTag.innerText = word;
+                slot.appendChild(wTag);
+            });
+        }
+
+        function checkSentence() {
+            const feedbackEl = document.getElementById('sentenceFeedback');
+            feedbackEl.classList.remove('hidden');
+
+            const targetFull = currentSentenceObj.en.join(' ');
+            const currentFull = selectedWords.join(' ');
+
+            if (targetFull === currentFull) {
+                playSoundEffect('correct');
+                speakEnglish(targetFull);
+                addStarsAndCoins(2, 4);
+
+                feedbackEl.className = "p-3 rounded-2xl font-bold text-lg bg-green-100 text-green-700 border-2 border-green-300";
+                feedbackEl.innerHTML = "🎉 Perfeito! Frase correta! ⭐";
+
+                setTimeout(() => startSentenceBuilder(), 2000);
+            } else {
+                playSoundEffect('wrong');
+                feedbackEl.className = "p-3 rounded-2xl font-bold text-lg bg-red-100 text-red-600 border-2 border-red-300";
+                feedbackEl.innerHTML = "Ops! A ordem está incorreta. Tente novamente! 😅";
+            }
+        }
+
+        /* ================= MODO HISTÓRIAS ================= */
+        function loadStory() {
+            const story = storiesDatabase[currentStoryIndex];
+            document.getElementById('storyTitle').innerText = story.title;
+            document.getElementById('storyText').innerText = story.text;
+            document.getElementById('storyQuestionText').innerText = `Pergunta: ${story.question}`;
+
+            document.getElementById('storyFeedback').classList.add('hidden');
+
+            const grid = document.getElementById('storyOptionsGrid');
+            grid.innerHTML = '';
+
+            story.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white hover:bg-slate-100 border-2 border-slate-300 p-3 rounded-xl font-bold text-left text-slate-700 bounce-hover shadow-sm";
+                btn.innerText = opt.text;
+                btn.onclick = () => checkStoryAnswer(opt, btn);
+                grid.appendChild(btn);
+            });
+
+            setTimeout(() => speakCurrentStory(), 400);
+        }
+
+        function speakCurrentStory() {
+            const story = storiesDatabase[currentStoryIndex];
+            speakEnglish(`${story.title}. ${story.text}`);
+        }
+
+        function checkStoryAnswer(option, btnEl) {
+            const feedback = document.getElementById('storyFeedback');
+            feedback.classList.remove('hidden');
+
+            if (option.correct) {
+                playSoundEffect('correct');
+                addStarsAndCoins(3, 5);
+
+                feedback.className = "p-3 rounded-2xl font-bold text-lg bg-green-100 text-green-700 border-2 border-green-300";
+                feedback.innerHTML = "🎉 Parabéns! Você entendeu a historinha perfeitamente! ⭐";
+
+                setTimeout(() => {
+                    currentStoryIndex = (currentStoryIndex + 1) % storiesDatabase.length;
+                    loadStory();
+                }, 2200);
+            } else {
+                playSoundEffect('wrong');
+                feedback.className = "p-3 rounded-2xl font-bold text-lg bg-red-100 text-red-600 border-2 border-red-300";
+                feedback.innerHTML = "Ops! Ouça a história de novo e tente outra vez! 🎧";
+            }
+        }
+
+        /* ================= CONQUISTAS E TROFÉUS ================= */
+        function checkBadgeUnlocks() {
+            badgesDatabase.forEach(badge => {
+                if (!userState.unlockedBadges.includes(badge.id)) {
+                    if (userState.stars >= badge.reqStars) {
+                        userState.unlockedBadges.push(badge.id);
+                        saveState();
+                    }
+                }
+            });
+        }
+
+        function openBadgesModal() {
+            playSoundEffect('click');
+            checkBadgeUnlocks();
+
+            const list = document.getElementById('badgesList');
+            list.innerHTML = '';
+
+            badgesDatabase.forEach(b => {
+                const isUnlocked = userState.unlockedBadges.includes(b.id);
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-2xl border-2 text-center flex flex-col items-center justify-center gap-1 ${
+                    isUnlocked ? 'bg-amber-50 border-amber-400 text-slate-800' : 'bg-slate-100 border-slate-200 opacity-60 grayscale'
+                }`;
+
+                item.innerHTML = `
+                    <span class="text-3xl">${b.icon}</span>
+                    <h4 class="font-extrabold text-xs text-kids-purple">${b.name}</h4>
+                    <p class="text-[10px] text-slate-500">${b.desc}</p>
+                    <span class="text-[10px] font-bold ${isUnlocked ? 'text-green-600' : 'text-slate-400'}">${isUnlocked ? 'Desbloqueado! ✅' : 'Bloqueado 🔒'}</span>
+                `;
+                list.appendChild(item);
+            });
+
+            document.getElementById('badgesModal').classList.remove('hidden');
+        }
+
+        function closeBadgesModal() {
+            playSoundEffect('click');
+            document.getElementById('badgesModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
