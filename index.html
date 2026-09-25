@@ -437,6 +437,15 @@
             const b = border ? `border:2px solid ${border};` : '';
             return `<span style="display:inline-block;width:0.85em;height:0.85em;background:${hex};border-radius:15%;vertical-align:middle;${b}"></span>`;
         }
+        function barnIcon() {
+            return `<svg viewBox="0 0 100 100" width="1em" height="1em" style="vertical-align:middle;">
+                <polygon points="8,48 50,14 92,48" fill="#8B3A2A" stroke="#1e293b" stroke-width="5" stroke-linejoin="round"/>
+                <rect x="14" y="46" width="72" height="42" fill="#E8483C" stroke="#1e293b" stroke-width="5"/>
+                <polygon points="38,88 38,58 62,58 62,88" fill="#6B3410" stroke="#1e293b" stroke-width="4"/>
+                <line x1="50" y1="58" x2="50" y2="88" stroke="#1e293b" stroke-width="3"/>
+                <circle cx="50" cy="30" r="7" fill="#FFD400" stroke="#1e293b" stroke-width="4"/>
+            </svg>`;
+        }
         const allCategories = [
             {
                 id: 'animals',
@@ -562,7 +571,7 @@
                     { en: 'Beach', pt: 'Praia', emoji: '🏖️' },
                     { en: 'Store', pt: 'Loja', emoji: '🏬' },
                     { en: 'Zoo', pt: 'Zoológico', emoji: '🦁' },
-                    { en: 'Farm', pt: 'Fazenda', emoji: '🚜' }
+                    { en: 'Farm', pt: 'Fazenda', emoji: barnIcon() }
                 ]
             }
         ];
