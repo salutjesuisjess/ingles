@@ -20,7 +20,7 @@
             theme: {
                 extend: {
                     colors: {
-                        'kids-yellow': '#FFDE59',
+                        'kids-yellow': '#FFD400',
                         'kids-orange': '#FF914D',
                         'kids-pink': '#FF66C4',
                         'kids-purple': '#8C52FF',
@@ -433,6 +433,10 @@
 
     <script>
         /* ================= TODAS AS CATEGORIAS COM 8 ITENS PARIDADE VISUAL (4x2) ================= */
+        function sq(hex, border) {
+            const b = border ? `border:2px solid ${border};` : '';
+            return `<span style="display:inline-block;width:0.85em;height:0.85em;background:${hex};border-radius:15%;vertical-align:middle;${b}"></span>`;
+        }
         const allCategories = [
             {
                 id: 'animals',
@@ -460,14 +464,14 @@
                 borderColor: 'border-pink-600',
                 reqStars: 0,
                 items: [
-                    { en: 'Red', pt: 'Vermelho', emoji: '🟥' },
-                    { en: 'Blue', pt: 'Azul', emoji: '🟦' },
-                    { en: 'Yellow', pt: 'Amarelo', emoji: '🟨' },
-                    { en: 'Green', pt: 'Verde', emoji: '🟩' },
-                    { en: 'Purple', pt: 'Roxo', emoji: '🟪' },
-                    { en: 'Orange', pt: 'Laranja', emoji: '🟧' },
-                    { en: 'Pink', pt: 'Rosa', emoji: '🦩' },
-                    { en: 'White', pt: 'Branco', emoji: '⬜' }
+                    { en: 'Red', pt: 'Vermelho', emoji: sq('#FF3B30') },
+                    { en: 'Blue', pt: 'Azul', emoji: sq('#5271FF') },
+                    { en: 'Yellow', pt: 'Amarelo', emoji: sq('#FFD400') },
+                    { en: 'Green', pt: 'Verde', emoji: sq('#00BF63') },
+                    { en: 'Purple', pt: 'Roxo', emoji: sq('#8C52FF') },
+                    { en: 'Orange', pt: 'Laranja', emoji: sq('#FF914D') },
+                    { en: 'Pink', pt: 'Rosa', emoji: sq('#FF66C4') },
+                    { en: 'White', pt: 'Branco', emoji: sq('#FFFFFF', '#CBD5E1') }
                 ]
             },
             {
@@ -578,20 +582,22 @@
                 title: "The Friendly Cat",
                 text: "Leo is a small orange cat. Leo loves to play with a blue ball. Every day, Leo eats milk and sleeps in the warm sun.",
                 question: "Qual é a cor da bola do Leo?",
+                questionEn: "What color is Leo's ball?",
                 options: [
-                    { text: "Azul (Blue)", correct: true },
-                    { text: "Vermelha (Red)", correct: false },
-                    { text: "Amarela (Yellow)", correct: false }
+                    { text: "Azul (Blue)", emoji: "🟦", correct: true },
+                    { text: "Vermelha (Red)", emoji: "🟥", correct: false },
+                    { text: "Amarela (Yellow)", emoji: "🟨", correct: false }
                 ]
             },
             {
                 title: "A Day at the Park",
                 text: "Mia goes to the park with her dog, Max. Max runs fast and jumps. They eat red apples under a big green tree.",
                 question: "O que Mia e Max comem no parque?",
+                questionEn: "What do Mia and Max eat in the park?",
                 options: [
-                    { text: "Maçãs vermelhas", correct: true },
-                    { text: "Pizza", correct: false },
-                    { text: "Biscoitos", correct: false }
+                    { text: "Maçãs vermelhas", emoji: "🍎", correct: true },
+                    { text: "Pizza gostosa", emoji: "🍕", correct: false },
+                    { text: "Biscoitos", emoji: "🍪", correct: false }
                 ]
             }
         ];
@@ -618,6 +624,7 @@
         let quizQuestionIndex = 0;
         let quizScore = 0;
         let quizTargetItem = null;
+        let lastQuizTargetItem = null;
 
         // Memory Game State
         let memoryCards = [];
@@ -941,10 +948,20 @@
 
             document.getElementById('quizCurrent').innerText = quizQuestionIndex + 1;
 
-            const shuffledItems = [...cat.items].sort(() => 0.5 - Math.random());
-            quizTargetItem = shuffledItems[0];
+            // Evitar repetição da pergunta/item imediatamente anterior
+            let candidateItems = cat.items.filter(item => !lastQuizTargetItem || item.en !== lastQuizTargetItem.en);
+            if (candidateItems.length === 0) candidateItems = cat.items;
 
-            const quizCurrentItems = shuffledItems.slice(0, 4).sort(() => 0.5 - Math.random());
+            const shuffledItems = [...candidateItems].sort(() => 0.5 - Math.random());
+            quizTargetItem = shuffledItems[0];
+            lastQuizTargetItem = quizTargetItem;
+
+            // Selecionar 3 distratores + a resposta certa
+            const distractors = cat.items.filter(item => item.en !== quizTargetItem.en)
+                                         .sort(() => 0.5 - Math.random())
+                                         .slice(0, 3);
+
+            const quizCurrentItems = [quizTargetItem, ...distractors].sort(() => 0.5 - Math.random());
 
             document.getElementById('quizWordTarget').innerText = quizTargetItem.en;
             setTimeout(() => speakEnglish(quizTargetItem.en), 300);
@@ -1283,7 +1300,17 @@
             const story = storiesDatabase[currentStoryIndex];
             document.getElementById('storyTitle').innerText = story.title;
             document.getElementById('storyText').innerText = story.text;
-            document.getElementById('storyQuestionText').innerText = `Pergunta: ${story.question}`;
+            
+            // Pergunta com botão de áudio
+            const qContainer = document.getElementById('storyQuestionText');
+            qContainer.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span>Pergunta: ${story.question}</span>
+                    <button onclick="speakQuestionStory()" class="bg-kids-yellow hover:bg-yellow-400 text-slate-800 p-2 rounded-full border-2 border-slate-800 shadow-sm bounce-hover text-sm shrink-0" title="Ouvir a pergunta">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
+            `;
 
             document.getElementById('storyFeedback').classList.add('hidden');
 
@@ -1292,8 +1319,11 @@
 
             story.options.forEach(opt => {
                 const btn = document.createElement('button');
-                btn.className = "bg-white hover:bg-slate-100 border-2 border-slate-300 p-3 rounded-xl font-bold text-left text-slate-700 bounce-hover shadow-sm";
-                btn.innerText = opt.text;
+                btn.className = "bg-white hover:bg-slate-100 border-2 border-slate-300 p-3.5 rounded-2xl font-bold text-left text-slate-700 bounce-hover shadow-sm flex items-center gap-3";
+                btn.innerHTML = `
+                    <span class="text-3xl shrink-0">${opt.emoji}</span>
+                    <span class="text-sm md:text-base">${opt.text}</span>
+                `;
                 btn.onclick = () => checkStoryAnswer(opt, btn);
                 grid.appendChild(btn);
             });
@@ -1304,6 +1334,11 @@
         function speakCurrentStory() {
             const story = storiesDatabase[currentStoryIndex];
             speakEnglish(`${story.title}. ${story.text}`);
+        }
+
+        function speakQuestionStory() {
+            const story = storiesDatabase[currentStoryIndex];
+            speakEnglish(story.questionEn || story.question);
         }
 
         function checkStoryAnswer(option, btnEl) {
