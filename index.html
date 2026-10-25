@@ -808,6 +808,7 @@
         let memoryCards = [];
         let flippedCards = [];
         let matchedPairs = 0;
+        let totalPairs = 4;
 
         // Connect Game State (Tap to Connect)
         let selectedConnectWord = null;
@@ -1630,9 +1631,13 @@
             document.getElementById('memoryWinMessage').classList.add('hidden');
 
             const cat = getCurrentCategory();
-            const items = uniqueByEn(cat.items).slice(0, 4);
+            const items = uniqueByEn(cat.items);
+            totalPairs = items.length;
 
-            document.getElementById('memoryPairsText').innerText = `Pares: 0/4`;
+            document.getElementById('memoryPairsText').innerText = `Pares: 0/${totalPairs}`;
+            document.getElementById('memoryGrid').className = totalPairs > 6
+                ? 'grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3'
+                : 'grid grid-cols-3 sm:grid-cols-4 gap-3';
 
             memoryCards = [];
             items.forEach((item, idx) => {
@@ -1641,7 +1646,9 @@
                     memoryCards.push({ id: idx, type: 'text', value: item.en, matchKey: item.en });
                     memoryCards.push({ id: idx, type: 'pt', value: item.pt, audio: item.ptSpeak || item.pt, matchKey: item.en });
                 } else {
-                    memoryCards.push({ id: idx, type: 'emoji', value: item.emoji, matchKey: item.en });
+                    // Familia: carta da figura fala em portugues; carta do texto fala em ingles
+                    const picExtra = cat.id === 'family' ? { ptAudio: itemPtAudio(item) } : {};
+                    memoryCards.push({ id: idx, type: 'emoji', value: item.emoji, matchKey: item.en, ...picExtra });
                     memoryCards.push({ id: idx, type: 'text', value: item.en, matchKey: item.en });
                 }
             });
@@ -1680,7 +1687,8 @@
 
             // Na segunda carta o audio entra na fila (nao corta o da primeira)
             const isSecond = flippedCards.length === 2;
-            if (cardObj.type === 'text') playAudio(cardObj.value, isSecond);
+            if (cardObj.type === 'emoji' && cardObj.ptAudio) speakLang(cardObj.ptAudio, 'pt-BR', null, isSecond);
+            else if (cardObj.type === 'text') playAudio(cardObj.value, isSecond);
             else if (cardObj.type === 'pt') speakLang(cardObj.audio, 'pt-BR', null, isSecond);
 
             if (isSecond) {
@@ -1691,10 +1699,10 @@
                 if (first.cardObj.matchKey === second.cardObj.matchKey) {
                     playSoundEffect('correct');
                     matchedPairs++;
-                    document.getElementById('memoryPairsText').innerText = `Pares: ${matchedPairs}/4`;
+                    document.getElementById('memoryPairsText').innerText = `Pares: ${matchedPairs}/${totalPairs}`;
                     flippedCards = [];
 
-                    if (matchedPairs === 4) {
+                    if (matchedPairs === totalPairs) {
                         addStarsAndCoins(2, 3);
                         setTimeout(() => {
                             document.getElementById('memoryWinMessage').classList.remove('hidden');
