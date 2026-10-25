@@ -1631,7 +1631,12 @@
             document.getElementById('memoryWinMessage').classList.add('hidden');
 
             const cat = getCurrentCategory();
-            const items = uniqueByEn(cat.items);
+            // Maximo de 6 pares (12 cartas) por partida, melhor no celular; se tiver mais, sorteia 6
+            const MAX_MEMORY_PAIRS = 6;
+            let items = uniqueByEn(cat.items);
+            if (items.length > MAX_MEMORY_PAIRS) {
+                items = items.slice().sort(() => 0.5 - Math.random()).slice(0, MAX_MEMORY_PAIRS);
+            }
             totalPairs = items.length;
 
             document.getElementById('memoryPairsText').innerText = `Pares: 0/${totalPairs}`;
