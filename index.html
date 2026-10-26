@@ -1105,14 +1105,98 @@
             }
         ];
 
-        // Base de Frases
-        const sentencesDatabase = [
-            { en: ["I", "like", "apples"], pt: "Eu gosto de maçãs.", emoji: "🍎" },
-            { en: ["The", "dog", "is", "happy"], pt: "O cachorro está feliz.", emoji: animalImg("Dog") },
-            { en: ["I", "have", "a", "cat"], pt: "Eu tenho um gato.", emoji: animalImg("Cat") },
-            { en: ["This", "is", "red"], pt: "Isto é vermelho.", emoji: "🟥" },
-            { en: ["She", "can", "run"], pt: "Ela sabe correr.", emoji: "🏃" }
-        ];
+        // Base de Frases: geradas so com palavras que ja existem no material
+        // (pronome + verbo + figura), sem artigos nem palavras extras no ingles.
+        const sentencesDatabase = (function buildSentences() {
+            const catItems = (id) => (allCategories.find(c => c.id === id) || { items: [] }).items;
+            const find = (id, en) => catItems(id).find(i => i.en === en);
+
+            const PRON = [
+                { en: 'I',    pt: 'Eu' },
+                { en: 'You',  pt: 'Você' },
+                { en: 'We',   pt: 'Nós' },
+                { en: 'They', pt: 'Eles' }
+            ];
+            // [verbo em ingles, [eu, voce, nos, eles], preposicao 'de' no portugues?]
+            const VERBS = {
+                like: [['gosto', 'gosta', 'gostamos', 'gostam'], true],
+                love: [['amo', 'ama', 'amamos', 'amam'], false],
+                eat:  [['como', 'come', 'comemos', 'comem'], false],
+                want: [['quero', 'quer', 'queremos', 'querem'], false],
+                need: [['preciso', 'precisa', 'precisamos', 'precisam'], true],
+                buy:  [['compro', 'compra', 'compramos', 'compram'], false],
+                see:  [['vejo', 'vê', 'vemos', 'veem'], false],
+                have: [['tenho', 'tem', 'temos', 'têm'], false],
+                find: [['encontro', 'encontra', 'encontramos', 'encontram'], false],
+                hear: [['ouço', 'ouve', 'ouvimos', 'ouvem'], false],
+                help: [['ajudo', 'ajuda', 'ajudamos', 'ajudam'], false]
+            };
+            // genero (o/a) dos substantivos que levam artigo no portugues
+            const GENDER = {
+                Dog:'o', Cat:'o', Lion:'o', Elephant:'o', Monkey:'o', Bear:'o', Pig:'o', Duck:'o', Fox:'a', Rabbit:'o',
+                Tiger:'o', Owl:'a', Giraffe:'a', Penguin:'o', Koala:'o', Dolphin:'o',
+                Father:'o', Mother:'a', Brother:'o', Sister:'a', Baby:'o', Grandfather:'o', Grandmother:'a', Aunt:'a', Uncle:'o',
+                House:'a', School:'a', Park:'o', Hospital:'o', Beach:'a', Store:'a', Zoo:'o', Farm:'a'
+            };
+
+            const out = [];
+            const capital = (words) => words.map((w, i) => (i === 0 || w === 'I') ? w : w.toLowerCase());
+
+            function add(catId, itemEn, verbs, withArticle, offset) {
+                const item = find(catId, itemEn);
+                if (!item) return;
+                const nounEn = itemEn.toLowerCase().split(' ');
+                const nounPt = item.pt.toLowerCase();
+                verbs.forEach((v, j) => {
+                    const p = PRON[(offset + j) % 4];
+                    const pi = (offset + j) % 4;
+                    const [conj, usesDe] = VERBS[v];
+                    const g = GENDER[itemEn];
+                    let obj;
+                    if (withArticle && g) obj = (usesDe ? (g === 'o' ? 'do ' : 'da ') : (g + ' ')) + nounPt;
+                    else obj = (usesDe ? 'de ' : '') + nounPt;
+                    out.push({
+                        en: capital([p.en, v, ...nounEn]),
+                        pt: `${p.pt} ${conj[pi]} ${obj}.`,
+                        emoji: item.emoji
+                    });
+                });
+            }
+
+            catItems('fruits').forEach((it, i) =>
+                add('fruits', it.en, ['like', 'love', 'eat', 'want', 'buy', 'need', 'see', 'have'], false, i));
+            catItems('animals').forEach((it, i) =>
+                add('animals', it.en, ['like', 'love', 'see', 'want', 'have', 'find', 'hear'], true, i));
+            catItems('family').filter(it => it.en !== 'Family' && it.en !== 'Cousin').forEach((it, i) =>
+                add('family', it.en, ['love', 'see', 'help', 'find', 'hear'], true, i));
+            catItems('city').forEach((it, i) =>
+                add('city', it.en, ['like', 'love', 'see', 'want', 'find'], true, i));
+            catItems('colors').slice(0, 11).forEach((it, i) =>
+                add('colors', it.en, ['like', 'love', 'see', 'want'], false, i));
+
+            // Cor + figura (ex.: "I eat red apple")
+            [
+                ['I', 'see', 'brown', 'bear', 'Eu vejo o urso marrom.', 'animals', 'Bear'],
+                ['I', 'like', 'pink', 'pig', 'Eu gosto do porco rosa.', 'animals', 'Pig'],
+                ['I', 'see', 'white', 'rabbit', 'Eu vejo o coelho branco.', 'animals', 'Rabbit'],
+                ['We', 'see', 'gray', 'elephant', 'Nós vemos o elefante cinza.', 'animals', 'Elephant'],
+                ['They', 'see', 'orange', 'tiger', 'Eles veem o tigre laranja.', 'animals', 'Tiger'],
+                ['I', 'love', 'yellow', 'duck', 'Eu amo o pato amarelo.', 'animals', 'Duck'],
+                ['You', 'see', 'black', 'cat', 'Você vê o gato preto.', 'animals', 'Cat'],
+                ['We', 'see', 'brown', 'monkey', 'Nós vemos o macaco marrom.', 'animals', 'Monkey'],
+                ['I', 'eat', 'red', 'apple', 'Eu como maçã vermelha.', 'fruits', 'Apple'],
+                ['We', 'eat', 'yellow', 'banana', 'Nós comemos banana amarela.', 'fruits', 'Banana'],
+                ['They', 'eat', 'purple', 'grapes', 'Eles comem uvas roxas.', 'fruits', 'Grapes'],
+                ['I', 'eat', 'green', 'kiwi', 'Eu como kiwi verde.', 'fruits', 'Kiwi'],
+                ['I', 'want', 'green', 'apple', 'Eu quero maçã verde.', 'fruits', 'Green Apple'],
+                ['I', 'like', 'red', 'strawberry', 'Eu gosto de morango vermelho.', 'fruits', 'Strawberry']
+            ].forEach(([p, v, c, n, pt, cat, ref]) => {
+                const item = find(cat, ref);
+                if (item) out.push({ en: [p, v, c, n], pt, emoji: item.emoji });
+            });
+
+            return out;
+        })();
 
         // Base de Histórias Curta
         const storiesDatabase = [
@@ -1156,7 +1240,9 @@
         };
 
         // Quantos acertos de primeira no Quiz para considerar uma palavra "decorada"
-        const MASTERY_TARGET = 2;
+        // Para abrir o proximo nivel basta decorar esta fracao das palavras do nivel anterior
+        const UNLOCK_FRACTION = 0.75;
+        const MASTERY_TARGET = 1;
 
         let currentCategoryIndex = 0;
         let currentMode = 'explore';
@@ -1298,7 +1384,14 @@
         }
 
         /* ================= SÍNTESE DE VOZ ================= */
+        // Ajustes de pronuncia para a voz sintetica (so o som, o texto na tela nao muda)
+        function fixPronunciation(text) {
+            return String(text)
+                .replace(/^\s*live\s*$/i, 'liv')                          // verbo "morar" (nao "laiv")
+                .replace(/\b(I|you|we|they)\s+live\b/gi, '$1 liv');      // "I live ..."
+        }
         function playAudio(text, queue) {
+            text = fixPronunciation(text);
             if ('speechSynthesis' in window) {
                 // Cancela qualquer fala anterior para evitar sobreposicao (a menos que queue = true)
                 if (!queue) window.speechSynthesis.cancel();
@@ -1356,9 +1449,15 @@
             const p = masteryProgress(catId);
             return p.total > 0 && p.done === p.total;
         }
+        // Progresso para abrir o proximo nivel: basta decorar UNLOCK_FRACTION das palavras
+        function unlockProgress(catId) {
+            const p = masteryProgress(catId);
+            const need = Math.max(1, Math.ceil(p.total * UNLOCK_FRACTION));
+            return { done: Math.min(p.done, need), total: p.total, need, ready: p.total > 0 && p.done >= need };
+        }
         function isCategoryUnlocked(cat) {
             if (userState.stars < cat.reqStars) return false;
-            if (cat.requires && !isCategoryMastered(cat.requires)) return false;
+            if (cat.requires && !unlockProgress(cat.requires).ready) return false;
             return true;
         }
         function recordMastery(catId, en) {
@@ -1371,9 +1470,12 @@
             if (before + 1 === MASTERY_TARGET) {
                 showToast(`✅ Você decorou: ${en}!`);
                 // Avisa quando uma fase nova foi liberada por este acerto
-                allCategories.filter(c => c.requires === catId).forEach(c => {
-                    if (isCategoryMastered(catId)) setTimeout(() => showToast(`🎉 Nova fase liberada: ${c.name}!`), 2700);
-                });
+                const up = unlockProgress(catId);
+                if (up.done === up.need && masteryProgress(catId).done === up.need) {
+                    allCategories.filter(c => c.requires === catId).forEach(c => {
+                        setTimeout(() => showToast(`🎉 Nova fase liberada: ${c.name}!`), 2700);
+                    });
+                }
                 renderLevelBar();
                 if (!userState.phrasesAnnounced && phrasesUnlocked()) {
                     userState.phrasesAnnounced = true;
@@ -1413,7 +1515,11 @@
             phrasesRequirementIds().forEach(id => { const p = masteryProgress(id); done += p.done; total += p.total; });
             return { done, total };
         }
+        // Para pre-visualizar Frases e Historias sem jogar: abra a pagina com #liberar no final do endereco
+        // (so vale nessa visita, nao altera o progresso salvo)
+        const PREVIEW_UNLOCK = /liberar/i.test(location.hash + location.search);
         function phrasesUnlocked() {
+            if (PREVIEW_UNLOCK) return true;
             return phrasesRequirementIds().every(id => isCategoryMastered(id));
         }
         function openSpecial(id) {
@@ -1468,8 +1574,8 @@
                     const p = phrasesProgress();
                     lockLabel = `🔒 To Be + Verbos (${p.done}/${p.total})`;
                 } else if (cat.requires && userState.stars >= cat.reqStars) {
-                    const p = masteryProgress(cat.requires);
-                    lockLabel = `🔒 Decore o nível anterior (${p.done}/${p.total})`;
+                    const p = unlockProgress(cat.requires);
+                    lockLabel = `🔒 Decore o nível anterior (${p.done}/${p.need})`;
                 }
                 const lock = unlocked ? '' : `<div class="absolute top-2 right-2 bg-amber-100 text-amber-700 border-2 border-amber-400 rounded-full px-2 py-0.5 text-xs font-extrabold">${lockLabel}</div>`;
 
@@ -1522,8 +1628,8 @@
                 const active = lv.id === cur.id;
                 let extra = '';
                 if (!unlocked && lv.requires && !/^Fase/.test(lv.levelLabel || '')) {   // numeros: sem contador no botao
-                    const p = masteryProgress(lv.requires);
-                    extra = ` <span class="text-[11px] font-extrabold">(${p.done}/${p.total})</span>`;
+                    const p = unlockProgress(lv.requires);
+                    extra = ` <span class="text-[11px] font-extrabold">(${p.done}/${p.need})</span>`;
                 }
                 const compact = /^Fase/.test(lv.levelLabel || '');   // Numeros: mostra so o intervalo (ex.: 11–20)
                 const btn = document.createElement('button');
@@ -1562,8 +1668,8 @@
                 playSoundEffect('wrong');
                 if (userState.stars >= lv.reqStars && lv.requires) {
                     const prev = allCategories.find(c => c.id === lv.requires);
-                    const p = masteryProgress(lv.requires);
-                    showToast(`🔒 Decore tudo ${levelRef(prev)} no Quiz para abrir! (${p.done}/${p.total})`);
+                    const p = unlockProgress(lv.requires);
+                    showToast(`🔒 Decore ${p.need} palavras ${levelRef(prev)} no Quiz para abrir! (${p.done}/${p.need})`);
                 } else {
                     showToast(`🔒 Ganhe ${lv.reqStars} ⭐ para abrir!`);
                 }
@@ -1582,9 +1688,9 @@
             if (!isCategoryUnlocked(cat)) {
                 playSoundEffect('wrong');
                 if (userState.stars >= cat.reqStars && cat.requires) {
-                    const p = masteryProgress(cat.requires);
+                    const p = unlockProgress(cat.requires);
                     const prev = allCategories.find(c => c.id === cat.requires);
-                    showToast(`🔒 Decore tudo ${levelRef(prev)} no Quiz para abrir! (${p.done}/${p.total})`);
+                    showToast(`🔒 Decore ${p.need} palavras ${levelRef(prev)} no Quiz para abrir! (${p.done}/${p.need})`);
                 } else {
                     showToast(`🔒 Ganhe ${cat.reqStars} ⭐ para abrir!`);
                 }
@@ -1966,6 +2072,7 @@
                 quizQueue = [];
                 while (cur.length || rev.length) {
                     if (cur.length) quizQueue.push(cur.shift());
+                    if (cur.length) quizQueue.push(cur.shift());
                     if (rev.length) quizQueue.push(rev.shift());
                 }
                 // Na virada do ciclo, evita que a primeira pergunta repita a ultima
@@ -1993,13 +2100,13 @@
 
             quizCurrentItems.forEach(item => {
                 const btn = document.createElement('button');
-                btn.className = "bg-slate-50 hover:bg-slate-100 border-4 border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 bounce-hover transition shadow-md";
+                btn.className = "bg-slate-50 hover:bg-slate-100 border-4 border-slate-200 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 bounce-hover transition shadow-md";
 
                 btn.onclick = () => { playPT(item); checkQuizAnswer(item, btn); };
 
                 btn.innerHTML = `
-                    <span class="text-4xl md:text-5xl">${item.emoji}</span>
-                    <span class="text-xs md:text-sm font-bold text-slate-500">${item.pt}</span>
+                    <span class="card-icon">${item.emoji}</span>
+                    <span class="text-sm md:text-lg font-bold text-slate-500 leading-tight">${item.pt}</span>
                 `;
                 grid.appendChild(btn);
             });
