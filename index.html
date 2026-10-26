@@ -110,6 +110,13 @@
             .card-icon-lg { height: 10.5rem; font-size: 6.5rem; }
         }
 
+        /* Frases: conectar */
+        .phrase-emoji { display:flex; align-items:center; justify-content:center; width:3.5rem; height:3.5rem; font-size:2.5rem; line-height:1; flex-shrink:0; }
+        .phrase-emoji > img { width:auto !important; height:100% !important; max-width:100%; object-fit:contain; vertical-align:baseline !important; }
+        .phrase-chip { touch-action:none; user-select:none; -webkit-user-select:none; cursor:grab; }
+        .phrase-slot.drag-over { border-color:#8C52FF; background:#f3ecff; }
+        .phrase-chip.selected { outline:4px solid #8C52FF; outline-offset:2px; }
+
         /* Pulse Animation for Selection */
         .selected-card {
             animation: pulse-border 1.2s infinite;
@@ -375,43 +382,25 @@
 
         <!-- ================= MODO FRASES (DESBLOQUEÁVEL NO NÍVEL 2) ================= -->
         <section id="sentenceView" class="hidden max-w-3xl mx-auto space-y-4">
-            <div id="sentenceUnlockedContent" class="bg-white rounded-3xl p-6 border-4 border-kids-orange shadow-xl text-center space-y-6">
+            <div id="sentenceUnlockedContent" class="bg-white rounded-3xl p-4 md:p-6 border-4 border-kids-orange shadow-xl text-center space-y-4">
                 <div>
-                    <h2 class="text-2xl font-extrabold text-kids-orange">Monte a Frase! ✍️</h2>
-                    <p class="text-slate-500 text-sm">Clique nas palavras na ordem correta para montar a frase em inglês!</p>
+                    <h2 class="text-2xl font-extrabold text-kids-orange">Conecte as Frases! 🔗</h2>
+                    <p class="text-slate-500 text-sm">Arraste a frase em português até a frase em inglês certa. Ou toque na frase e depois no lugar certo!</p>
                 </div>
 
-                <div class="bg-orange-50 p-4 rounded-2xl border-2 border-orange-200 flex flex-col md:flex-row items-center justify-center gap-4">
-                    <span id="sentenceEmoji" class="text-6xl">🍎</span>
-                    <div class="text-left">
-                        <span class="text-xs uppercase font-bold text-slate-400">Tradução em Português:</span>
-                        <p id="sentencePortuguese" onclick="speakSentencePT()" class="text-xl font-bold text-kids-blue cursor-pointer" title="Toque para ouvir em português">Eu gosto de maçãs.</p>
-                        <button onclick="speakSentencePT()" class="mt-1 inline-flex items-center gap-1.5 bg-blue-50 border-2 border-kids-blue rounded-full px-3 py-0.5 text-xs font-bold text-kids-blue"><i class="fa-solid fa-volume-high"></i> Ouvir em português</button>
-                    </div>
-                    <button onclick="speakSentenceTarget()" class="w-12 h-12 bg-kids-yellow rounded-full flex items-center justify-center border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover text-xl ml-auto">
-                        <i class="fa-solid fa-volume-high"></i>
+                <div id="phraseRows" class="space-y-3"></div>
+
+                <div>
+                    <div class="text-xs uppercase font-bold text-slate-400 mb-2">Frases em português</div>
+                    <div id="phraseBank" class="flex flex-col gap-2"></div>
+                </div>
+
+                <div id="phraseFeedback" class="hidden p-3 rounded-2xl font-bold text-lg bg-green-100 text-green-700 border-2 border-green-300"></div>
+
+                <div class="flex justify-center">
+                    <button onclick="startSentenceBuilder()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl font-bold text-sm border-2 border-slate-400">
+                        Novas frases 🔄
                     </button>
-                </div>
-
-                <div id="sentenceSlot" class="min-h-[60px] bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl p-3 flex flex-wrap gap-2 items-center justify-center">
-                    <!-- Palavras selecionadas -->
-                </div>
-
-                <div id="sentenceBank" class="flex flex-wrap gap-2 justify-center pt-2">
-                    <!-- Palavras para clicar -->
-                </div>
-
-                <div id="sentenceActions" class="flex justify-center gap-4 pt-2">
-                    <button onclick="resetSentenceSlots()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl font-bold text-sm border-2 border-slate-400">
-                        Reiniciar 🔄
-                    </button>
-                    <button onclick="checkSentence()" class="bg-kids-green text-white px-6 py-2 rounded-xl font-bold text-base border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover">
-                        Verificar 🚀
-                    </button>
-                </div>
-
-                <div id="sentenceFeedback" class="hidden p-3 rounded-2xl font-bold text-lg">
-                    <!-- Feedback -->
                 </div>
             </div>
 
@@ -419,7 +408,7 @@
             <div id="sentenceLockedContent" class="hidden bg-white rounded-3xl p-8 border-4 border-slate-300 text-center space-y-4 shadow-lg">
                 <div class="text-6xl">🔒</div>
                 <h3 class="text-2xl font-black text-slate-700">Modo Frases Bloqueado</h3>
-                <p class="text-slate-500 max-w-md mx-auto">Aprenda <span class="font-extrabold text-amber-500">tudo do Verbo To Be e dos Verbos</span> no Quiz para liberar o Construtor de Frases!</p>
+                <p class="text-slate-500 max-w-md mx-auto">Aprenda <span class="font-extrabold text-amber-500">tudo do Verbo To Be e dos Verbos</span> no Quiz para liberar o jogo de Frases!</p>
                 <button onclick="switchMode('quiz')" class="bg-kids-yellow text-slate-800 font-bold px-6 py-2.5 rounded-xl border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover">
                     Ir para o Quiz e Ganhar Estrelas ⭐
                 </button>
@@ -1142,7 +1131,7 @@
             const out = [];
             const capital = (words) => words.map((w, i) => (i === 0 || w === 'I') ? w : w.toLowerCase());
 
-            function add(catId, itemEn, verbs, withArticle, offset) {
+            function add(catId, itemEn, verbs, withArticle, offset, possessive) {
                 const item = find(catId, itemEn);
                 if (!item) return;
                 const nounEn = itemEn.toLowerCase().split(' ');
@@ -1153,12 +1142,14 @@
                     const [conj, usesDe] = VERBS[v];
                     const g = GENDER[itemEn];
                     let obj;
-                    if (withArticle && g) obj = (usesDe ? (g === 'o' ? 'do ' : 'da ') : (g + ' ')) + nounPt;
+                    if (possessive && g) obj = (g === 'a' ? 'minha ' : 'meu ') + nounPt;
+                    else if (withArticle && g) obj = (usesDe ? (g === 'o' ? 'do ' : 'da ') : (g + ' ')) + nounPt;
                     else obj = (usesDe ? 'de ' : '') + nounPt;
                     out.push({
-                        en: capital([p.en, v, ...nounEn]),
+                        en: capital(possessive ? [p.en, v, 'my', ...nounEn] : [p.en, v, ...nounEn]),
                         pt: `${p.pt} ${conj[pi]} ${obj}.`,
-                        emoji: item.emoji
+                        emoji: item.emoji,
+                        cat: catId
                     });
                 });
             }
@@ -1168,7 +1159,7 @@
             catItems('animals').forEach((it, i) =>
                 add('animals', it.en, ['like', 'love', 'see', 'want', 'have', 'find', 'hear'], true, i));
             catItems('family').filter(it => it.en !== 'Family' && it.en !== 'Cousin').forEach((it, i) =>
-                add('family', it.en, ['love', 'see', 'help', 'find', 'hear'], true, i));
+                add('family', it.en, ['love', 'see', 'help', 'find', 'hear'], true, i, true));
             catItems('city').forEach((it, i) =>
                 add('city', it.en, ['like', 'love', 'see', 'want', 'find'], true, i));
             catItems('colors').slice(0, 11).forEach((it, i) =>
@@ -1192,7 +1183,7 @@
                 ['I', 'like', 'red', 'strawberry', 'Eu gosto de morango vermelho.', 'fruits', 'Strawberry']
             ].forEach(([p, v, c, n, pt, cat, ref]) => {
                 const item = find(cat, ref);
-                if (item) out.push({ en: [p, v, c, n], pt, emoji: item.emoji });
+                if (item) out.push({ en: [p, v, c, n], pt, emoji: item.emoji, cat: 'combo' });
             });
 
             return out;
@@ -1517,13 +1508,26 @@
         }
         // Para pre-visualizar Frases e Historias sem jogar: abra a pagina com #liberar no final do endereco
         // (so vale nessa visita, nao altera o progresso salvo)
-        const PREVIEW_UNLOCK = /liberar/i.test(location.hash + location.search);
+        // Alternativa: tocar 5 vezes seguidas no cartao bloqueado de Frases (tambem so nessa visita)
+        let previewUnlock = false;
+        let previewTaps = [];
+        function previewOn() { return previewUnlock || /liberar/i.test(location.hash + location.search); }
+        window.addEventListener('hashchange', () => { if (currentMode === 'home') renderHome(); });
         function phrasesUnlocked() {
-            if (PREVIEW_UNLOCK) return true;
+            if (previewOn()) return true;
             return phrasesRequirementIds().every(id => isCategoryMastered(id));
         }
         function openSpecial(id) {
             if (!phrasesUnlocked()) {
+                const now = Date.now();
+                previewTaps = previewTaps.filter(t => now - t < 4000).concat(now);
+                if (previewTaps.length >= 5) {
+                    previewUnlock = true;
+                    previewTaps = [];
+                    showToast('👀 Pré-visualização: Frases e Histórias abertas nesta visita');
+                    renderHome();
+                    return;
+                }
                 playSoundEffect('wrong');
                 const p = phrasesProgress();
                 showToast(`🔒 Aprenda tudo do Verbo To Be e dos Verbos no Quiz para abrir! (${p.done}/${p.total})`);
@@ -2383,88 +2387,167 @@
         }
 
         /* ================= MODO CONSTRUTOR DE FRASES ================= */
-        function startSentenceBuilder() {
-            document.getElementById('sentenceFeedback').classList.add('hidden');
-            currentSentenceObj = sentencesDatabase[Math.floor(Math.random() * sentencesDatabase.length)];
-            selectedWords = [];
+        /* ================= FRASES: CONECTAR ================= */
+        const PHRASE_PAIRS = 4;
+        let phraseRound = [];
+        let phraseSelected = null;
+        let phraseSolved = 0;
 
-            document.getElementById('sentenceEmoji').innerHTML = currentSentenceObj.emoji;
-            document.getElementById('sentencePortuguese').innerText = currentSentenceObj.pt;
+        function phraseEnText(obj) { return obj.en.join(' ') + '.'; }
 
-            resetSentenceSlots();
-        }
-
-        function speakSentencePT() {
-            if (currentSentenceObj) speakLang(currentSentenceObj.pt, 'pt-BR');
-        }
-
-        function speakSentenceTarget() {
-            if (currentSentenceObj) {
-                speakEnglish(currentSentenceObj.en.join(' '));
+        // Sorteia frases de temas diferentes e sem repetir o objeto (ex.: so uma com "sister")
+        function pickPhraseRound(n) {
+            const cats = shuffled([...new Set(sentencesDatabase.map(x => x.cat))]);
+            const usedNoun = new Set(), usedPt = new Set(), picked = [];
+            for (let i = 0; i < 40 && picked.length < n; i++) {
+                const cat = cats[i % cats.length];
+                const pool = shuffled(sentencesDatabase.filter(x => x.cat === cat));
+                const cand = pool.find(x => !usedNoun.has(x.en[x.en.length - 1]) && !usedPt.has(x.pt));
+                if (cand) {
+                    usedNoun.add(cand.en[cand.en.length - 1]);
+                    usedPt.add(cand.pt);
+                    picked.push(cand);
+                }
             }
+            return picked.map((x, i) => ({ id: String(i), en: phraseEnText(x), pt: x.pt, emoji: x.emoji }));
         }
 
-        function resetSentenceSlots() {
-            selectedWords = [];
-            document.getElementById('sentenceFeedback').classList.add('hidden');
+        function startSentenceBuilder() {
+            phraseSelected = null;
+            phraseSolved = 0;
+            document.getElementById('phraseFeedback').classList.add('hidden');
+            phraseRound = pickPhraseRound(PHRASE_PAIRS);
 
-            const slot = document.getElementById('sentenceSlot');
-            slot.innerHTML = `<span class="text-slate-400 text-sm italic">Clique nas palavras abaixo para montar...</span>`;
-
-            const shuffledWords = [...currentSentenceObj.en].sort(() => 0.5 - Math.random());
-            const bank = document.getElementById('sentenceBank');
+            const rows = document.getElementById('phraseRows');
+            const bank = document.getElementById('phraseBank');
+            rows.innerHTML = '';
             bank.innerHTML = '';
 
-            shuffledWords.forEach((word) => {
-                const btn = document.createElement('button');
-                btn.className = "bg-white hover:bg-orange-100 text-slate-800 font-extrabold text-base px-4 py-2 rounded-xl border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover";
-                btn.innerText = word;
-                btn.onclick = () => selectSentenceWord(word, btn);
-                bank.appendChild(btn);
+            phraseRound.forEach(p => {
+                const row = document.createElement('div');
+                row.className = 'phrase-row bg-orange-50 border-2 border-orange-200 rounded-2xl p-3 space-y-2 text-left';
+                row.innerHTML = `
+                    <div class="phrase-head flex items-center gap-3 cursor-pointer">
+                        <span class="phrase-emoji">${p.emoji}</span>
+                        <span class="flex-1 text-lg md:text-xl font-black text-slate-700 leading-tight">${p.en}</span>
+                        <button data-listen class="w-10 h-10 shrink-0 bg-kids-yellow rounded-full flex items-center justify-center border-2 border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bounce-hover" title="Ouvir"><i class="fa-solid fa-volume-high"></i></button>
+                    </div>
+                    <div class="phrase-slot min-h-[3.25rem] rounded-xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center text-slate-300 text-sm px-3 py-2 text-center" data-id="${p.id}">Solte aqui a frase em português</div>`;
+                row.querySelector('[data-listen]').onclick = (e) => { e.stopPropagation(); speakEnglish(p.en); };
+                row.onclick = () => {
+                    const slot = row.querySelector('.phrase-slot');
+                    if (phraseSelected) tryPlacePhrase(phraseSelected, slot);
+                    else speakEnglish(p.en);
+                };
+                rows.appendChild(row);
+            });
+
+            shuffled(phraseRound).forEach(p => {
+                const chip = document.createElement('div');
+                chip.className = 'phrase-chip bg-white border-2 border-slate-800 rounded-xl px-4 py-3 font-extrabold text-base md:text-lg text-kids-blue shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]';
+                chip.dataset.id = p.id;
+                chip.textContent = p.pt;
+                wirePhraseChip(chip);
+                bank.appendChild(chip);
             });
         }
 
-        function selectSentenceWord(word, btnEl) {
+        function selectPhraseChip(chip) {
+            if (phraseSelected) phraseSelected.classList.remove('selected');
+            if (phraseSelected === chip) { phraseSelected = null; return; }
+            phraseSelected = chip;
+            chip.classList.add('selected');
             playSoundEffect('click');
-            selectedWords.push(word);
-            btnEl.disabled = true;
-            btnEl.classList.add('opacity-40');
-
-            renderSentenceSlots();
+            speakLang(chip.textContent, 'pt-BR');
         }
 
-        function renderSentenceSlots() {
-            const slot = document.getElementById('sentenceSlot');
-            slot.innerHTML = '';
+        function phraseSlotAt(x, y) {
+            const el = document.elementFromPoint(x, y);
+            if (!el) return null;
+            const row = el.closest('.phrase-row');
+            return row ? row.querySelector('.phrase-slot') : null;
+        }
 
-            selectedWords.forEach((word) => {
-                const wTag = document.createElement('span');
-                wTag.className = "bg-kids-orange text-white font-extrabold text-base px-3 py-1.5 rounded-xl border-2 border-slate-800 shadow-sm animate-scale-up";
-                wTag.innerText = word;
-                slot.appendChild(wTag);
+        function wirePhraseChip(chip) {
+            chip.addEventListener('pointerdown', (e) => {
+                if (chip.classList.contains('hidden')) return;
+                e.preventDefault();
+                const sx = e.clientX, sy = e.clientY;
+                let ghost = null, moved = false, lastSlot = null;
+                try { chip.setPointerCapture(e.pointerId); } catch (_) {}
+
+                const move = (ev) => {
+                    if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) {
+                        moved = true;
+                        const r = chip.getBoundingClientRect();
+                        ghost = chip.cloneNode(true);
+                        ghost.style.cssText = `position:fixed;z-index:9999;pointer-events:none;width:${r.width}px;opacity:.92;transform:translate(-50%,-50%) scale(1.04);`;
+                        document.body.appendChild(ghost);
+                        chip.style.opacity = '0.35';
+                    }
+                    if (!moved) return;
+                    ghost.style.left = ev.clientX + 'px';
+                    ghost.style.top = ev.clientY + 'px';
+                    const slot = phraseSlotAt(ev.clientX, ev.clientY);
+                    if (slot !== lastSlot) {
+                        if (lastSlot) lastSlot.classList.remove('drag-over');
+                        if (slot && !slot.dataset.done) slot.classList.add('drag-over');
+                        lastSlot = slot;
+                    }
+                    if (ev.clientY < 70) window.scrollBy(0, -14);
+                    else if (ev.clientY > window.innerHeight - 70) window.scrollBy(0, 14);
+                };
+                const up = (ev) => {
+                    chip.removeEventListener('pointermove', move);
+                    chip.removeEventListener('pointerup', up);
+                    chip.removeEventListener('pointercancel', up);
+                    if (lastSlot) lastSlot.classList.remove('drag-over');
+                    if (ghost) ghost.remove();
+                    chip.style.opacity = '';
+                    if (moved) {
+                        const slot = phraseSlotAt(ev.clientX, ev.clientY);
+                        if (slot) tryPlacePhrase(chip, slot);
+                    } else {
+                        selectPhraseChip(chip);
+                    }
+                };
+                chip.addEventListener('pointermove', move);
+                chip.addEventListener('pointerup', up);
+                chip.addEventListener('pointercancel', up);
             });
         }
 
-        function checkSentence() {
-            const feedbackEl = document.getElementById('sentenceFeedback');
-            feedbackEl.classList.remove('hidden');
+        function shakeEl(el) {
+            if (el && el.animate) el.animate(
+                [{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(0)' }],
+                { duration: 350 });
+        }
 
-            const targetFull = currentSentenceObj.en.join(' ');
-            const currentFull = selectedWords.join(' ');
+        function tryPlacePhrase(chip, slot) {
+            if (slot.dataset.done) return;
+            if (phraseSelected) { phraseSelected.classList.remove('selected'); phraseSelected = null; }
+            const p = phraseRound.find(x => x.id === slot.dataset.id);
 
-            if (targetFull === currentFull) {
+            if (chip.dataset.id === slot.dataset.id) {
+                slot.dataset.done = '1';
+                slot.className = 'phrase-slot min-h-[3.25rem] rounded-xl border-2 border-green-400 bg-green-100 text-green-700 font-extrabold text-base md:text-lg flex items-center justify-center px-3 py-2 text-center';
+                slot.textContent = '✅ ' + p.pt;
+                chip.classList.add('hidden');
                 playSoundEffect('correct');
-                speakEnglish(targetFull);
-                addStarsAndCoins(2, 4);
-
-                feedbackEl.className = "p-3 rounded-2xl font-bold text-lg bg-green-100 text-green-700 border-2 border-green-300";
-                feedbackEl.innerHTML = "🎉 Perfeito! Frase correta! ⭐";
-
-                afterSpeech(() => startSentenceBuilder(), 1800);
+                speakEnglish(p.en);
+                addStarsAndCoins(1, 2);
+                phraseSolved++;
+                if (phraseSolved === phraseRound.length) {
+                    addStarsAndCoins(2, 4);
+                    const fb = document.getElementById('phraseFeedback');
+                    fb.textContent = '🎉 Todas as frases conectadas! ⭐';
+                    fb.classList.remove('hidden');
+                    afterSpeech(() => { if (currentMode === 'sentence') startSentenceBuilder(); }, 1800);
+                }
             } else {
                 playSoundEffect('wrong');
-                feedbackEl.className = "p-3 rounded-2xl font-bold text-lg bg-red-100 text-red-600 border-2 border-red-300";
-                feedbackEl.innerHTML = "Ops! A ordem está incorreta. Tente novamente! 😅";
+                shakeEl(slot);
+                shakeEl(chip);
             }
         }
 
